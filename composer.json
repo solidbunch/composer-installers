@@ -1,0 +1,23 @@
+{
+  "name": "solidbunch/composer-installers",
+  "type": "composer-plugin",
+  "description": "Custom installer for StarterKit package types",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "SolidBunch\\Composer\\": "src/"
+    }
+  },
+  "require": {
+    "composer-plugin-api": "^2.0",
+    "composer/installers": "^2.3"
+  },
+  "extra": {
+    "class": "SolidBunch\\Composer\\KitInstaller"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true
+    }
+  }
+}
