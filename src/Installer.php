@@ -2,23 +2,19 @@
 
 namespace SolidBunch\ComposerInstallers;
 
-use Composer\Installer\LibraryInstaller;
-use Composer\Package\PackageInterface;
+use Composer\Composer;
+use Composer\IO\IOInterface;
+use Composer\Installers\Installer as BaseInstaller;
 
-class Installer extends LibraryInstaller
+class Installer extends BaseInstaller
 {
-    protected $supportedTypes = [
-        'kit-module',
-        'wordpress-core'
-    ];
-
-    public function supports($packageType)
+    public function __construct(IOInterface $io, Composer $composer)
     {
-        return in_array($packageType, $this->supportedTypes, true);
-    }
+        parent::__construct($io, $composer);
 
-    public function getInstallPath(PackageInterface $package)
-    {
-        return parent::getInstallPath($package);
+        $this->locations = array_merge($this->locations, [
+            'kit-module'     => 'kit-modules/{$name}/',
+            'wordpress-core' => 'cweb/wp-core/',
+        ]);
     }
 }
