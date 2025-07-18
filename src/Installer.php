@@ -59,7 +59,10 @@ class Installer extends LibraryInstaller
      */
     public function supports(string $packageType): bool
     {
-        return true; // supports all types (custom or default)
+        return in_array($packageType, [
+            'kit-module',
+            'wordpress-core'
+        ], true);
     }
 
     /**
