@@ -6,7 +6,6 @@ use Composer\Installer\LibraryInstaller;
 use Composer\IO\IOInterface;
 use Composer\Composer;
 use Composer\Package\PackageInterface;
-use Composer\Package\RootPackageInterface;
 
 /**
  * Custom installer that supports any package types defined in "extra.installer-paths" of the root project.
@@ -15,21 +14,26 @@ class Installer extends LibraryInstaller
 {
     protected array $paths = [];
 
+    protected const TYPES = [
+        'kit-module',
+        'wordpress-core'
+    ];
+
+
     /**
      * Constructor that loads installer-paths from root composer.json.
      */
     public function __construct(IOInterface $io, Composer $composer)
     {
         // Constructor compatible with Composer 2.2+
-        parent::__construct($io, $composer, 'library', null);
+        parent::__construct($io, $composer);
 
-        $rootPackage = $composer->getPackage();
-
-        // Make sure we get installer-paths from the root composer.json
-        if ($rootPackage instanceof RootPackageInterface) {
-            $this->paths = $rootPackage->getExtra()['installer-paths'] ?? [];
+        $extra = $composer->getPackage()->getExtra();
+        if (isset($extra['installer-paths'])) {
+            $this->paths = $extra['installer-paths'];
         }
     }
+
 
     /**
      * Returns the custom install path for the given package.
@@ -54,16 +58,15 @@ class Installer extends LibraryInstaller
         return parent::getInstallPath($package);
     }
 
+
     /**
      * Indicates that this installer supports any package type.
      */
     public function supports(string $packageType): bool
     {
-        return in_array($packageType, [
-            'kit-module',
-            'wordpress-core'
-        ], true);
+        return in_array($packageType, self::TYPES, true);
     }
+
 
     /**
      * Replaces placeholders like {$vendor} and {$name} in the target path.
