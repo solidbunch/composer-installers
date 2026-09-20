@@ -1,0 +1,7 @@
+{
+  "name": "solidbunch/wordpress-core-no-content",
+  "description": "Placeholder package of type wordpress-core used by the installer tests",
+  "version": "7.1.1",
+  "type": "wordpress-core",
+  "license": "GPL-2.0-or-later"
+}

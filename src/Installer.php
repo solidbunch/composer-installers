@@ -60,11 +60,31 @@ class Installer extends LibraryInstaller
 
 
     /**
-     * Indicates that this installer supports any package type.
+     * Claims a package type only when "extra.installer-paths" of the root project has a rule that can apply to it.
+     *
+     * A "type:<type>" criterion applies when it names this exact type. Any other criterion is a package name;
+     * a name cannot be evaluated here because only the type is passed in, so it is treated as applicable.
+     * Without a matching rule another installer (or Composer's default) handles the package.
      */
     public function supports(string $packageType): bool
     {
-        return in_array($packageType, self::TYPES, true);
+        if (!in_array($packageType, self::TYPES, true)) {
+            return false;
+        }
+
+        foreach ($this->paths as $criteriaList) {
+            foreach ((array) $criteriaList as $criteria) {
+                if (!is_string($criteria)) {
+                    continue;
+                }
+
+                if (!str_starts_with($criteria, 'type:') || substr($criteria, 5) === $packageType) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 

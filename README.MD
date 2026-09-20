@@ -17,7 +17,7 @@ In your project `composer.json`:
 
 ```json
 "require": {
-  "solidbunch/composer-installers": "dev-main"
+  "solidbunch/composer-installers": "^1.1"
 },
 "extra": {
   "installer-paths": {
@@ -31,6 +31,7 @@ In your project `composer.json`:
 
 * If `installer-paths` are defined — packages will be installed accordingly.
 * If not — packages will default to `vendor/`.
+* The installer claims a package type only when `extra.installer-paths` has a rule that can match it; otherwise another installer (or Composer's default) handles the package.
 
 ## Stay Connected
 

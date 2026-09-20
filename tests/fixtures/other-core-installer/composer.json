@@ -1,0 +1,18 @@
+{
+  "name": "acme/wordpress-core-installer",
+  "description": "Stand-in for a third-party core installer: claims wordpress-core and honours extra.wordpress-install-dir",
+  "version": "1.0.0",
+  "type": "composer-plugin",
+  "license": "MIT",
+  "require": {
+    "composer-plugin-api": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Acme\\CoreInstaller\\": "src/"
+    }
+  },
+  "extra": {
+    "class": "Acme\\CoreInstaller\\Plugin"
+  }
+}
