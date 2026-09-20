@@ -8,10 +8,18 @@ use Composer\Composer;
 use Composer\Package\PackageInterface;
 
 /**
- * Custom installer that supports any package types defined in "extra.installer-paths" of the root project.
+ * Custom installer for the package types listed in TYPES ("kit-module" and "wordpress-core") only.
+ *
+ * A type is claimed only when "extra.installer-paths" of the root project has a rule that can match it
+ * (see supports()). Package-name rules therefore apply only to packages of those two types.
  */
 class Installer extends LibraryInstaller
 {
+    /**
+     * Normalized "extra.installer-paths": install path template => list of string criteria.
+     *
+     * @var array<int|string, list<string>>
+     */
     protected array $paths = [];
 
     protected const TYPES = [
@@ -29,33 +37,26 @@ class Installer extends LibraryInstaller
         parent::__construct($io, $composer);
 
         $extra = $composer->getPackage()->getExtra();
-        if (isset($extra['installer-paths'])) {
-            $this->paths = $extra['installer-paths'];
-        }
+        $this->paths = $this->normalizePaths($extra['installer-paths'] ?? null);
     }
 
 
     /**
      * Returns the custom install path for the given package.
+     *
+     * Rules naming the exact package name take precedence over "type:" rules; within each group the first rule
+     * in the order of "extra.installer-paths" wins. Without a matching rule the default vendor path is returned.
      */
     public function getInstallPath(PackageInterface $package): string
     {
-        $type = $package->getType();
         $name = $package->getPrettyName(); // vendor/name
 
-        foreach ($this->paths as $path => $criteriaList) {
-            foreach ($criteriaList as $criteria) {
-                if (str_starts_with($criteria, 'type:')) {
-                    if ($type === substr($criteria, 5)) {
-                        return $this->replaceVars($path, $name);
-                    }
-                } elseif ($criteria === $name) {
-                    return $this->replaceVars($path, $name);
-                }
-            }
+        $path = $this->findPath($name) ?? $this->findPath('type:' . $package->getType());
+        if ($path === null) {
+            return parent::getInstallPath($package);
         }
 
-        return parent::getInstallPath($package);
+        return $this->replaceVars((string) $path, $name);
     }
 
 
@@ -85,6 +86,41 @@ class Installer extends LibraryInstaller
         }
 
         return false;
+    }
+
+
+    /**
+     * Keeps the shape of "installer-paths" the rest of the class relies on; keys are never dropped or re-keyed.
+     *
+     * @return array<int|string, list<string>>
+     */
+    private function normalizePaths(mixed $installerPaths): array
+    {
+        if (!is_array($installerPaths)) {
+            return [];
+        }
+
+        $paths = [];
+        foreach ($installerPaths as $path => $criteriaList) {
+            $paths[$path] = array_values(array_filter((array) $criteriaList, 'is_string'));
+        }
+
+        return $paths;
+    }
+
+
+    /**
+     * Returns the first path template (in declaration order) whose criteria contain the given string.
+     */
+    private function findPath(string $criteria): int|string|null
+    {
+        foreach ($this->paths as $path => $criteriaList) {
+            if (in_array($criteria, $criteriaList, true)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
 
