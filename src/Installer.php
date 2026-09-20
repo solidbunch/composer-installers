@@ -46,17 +46,15 @@ class Installer extends LibraryInstaller
      *
      * Rules naming the exact package name take precedence over "type:" rules; within each group the first rule
      * in the order of "extra.installer-paths" wins. Without a matching rule the default vendor path is returned.
+     * A custom path never ends with a slash; a rule whose path is empty once slashes are stripped is skipped.
      */
     public function getInstallPath(PackageInterface $package): string
     {
         $name = $package->getPrettyName(); // vendor/name
 
-        $path = $this->findPath($name) ?? $this->findPath('type:' . $package->getType());
-        if ($path === null) {
-            return parent::getInstallPath($package);
-        }
-
-        return $this->replaceVars((string) $path, $name);
+        return $this->findPath($name, $name)
+            ?? $this->findPath('type:' . $package->getType(), $name)
+            ?? parent::getInstallPath($package);
     }
 
 
@@ -110,12 +108,18 @@ class Installer extends LibraryInstaller
 
 
     /**
-     * Returns the first path template (in declaration order) whose criteria contain the given string.
+     * Returns the resolved path of the first rule (in declaration order) whose criteria contain the given string.
      */
-    private function findPath(string $criteria): int|string|null
+    private function findPath(string $criteria, string $prettyName): ?string
     {
-        foreach ($this->paths as $path => $criteriaList) {
-            if (in_array($criteria, $criteriaList, true)) {
+        foreach ($this->paths as $template => $criteriaList) {
+            if (!in_array($criteria, $criteriaList, true)) {
+                continue;
+            }
+
+            // InstallerInterface::getInstallPath() requires a path that does not end with a slash
+            $path = rtrim($this->replaceVars((string) $template, $prettyName), '/');
+            if ($path !== '') {
                 return $path;
             }
         }
