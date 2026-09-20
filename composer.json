@@ -18,10 +18,5 @@
   },
   "extra": {
     "class": "SolidBunch\\ComposerInstallers\\Plugin"
-  },
-  "config": {
-    "allow-plugins": {
-      "composer/installers": true
-    }
   }
 }
