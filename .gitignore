@@ -28,58 +28,46 @@ ehthumbs.db
 #===================================#
 *.log
 *.log.*
-error_log
-access_log
-logs/**/*.out
-.sass-cache
-*.css.map
-*.js.map
-*.LICENSE
-*.lck
-/cache/**
-!/cache/**/
-/logs/**
-!/logs/**/
 
 
 #=============================#
 #    Config, secrets, .env    #
 #=============================#
 .env
-.env.*override
-.env.*secret
+.env.*
+!.env.example
 
 
 #===================================#
 #       Vendor and npm Files        #
 #===================================#
-node_modules
-vendor
+vendor/
+node_modules/
 
 
 #===================================#
-#          Content Files            #
+#            PHPUnit                #
 #===================================#
-
-# tmp folder
-tmp/**
-
-
-#===================================#
-#          Database Files           #
-#===================================#
-/db-data
-*.sql
+.phpunit.cache/
+.phpunit.result.cache
 
 
 #===================================#
-#          Backup Files           #
+#     Browser automation output     #
 #===================================#
-/backups
+.playwright-mcp/
 
 
 # ===================================#
-#          Miscellaneous             #
+#          Claude Code               #
 # ===================================#
-!**/.gitkeep
-
+# Keep shared AI instructions tracked (root CLAUDE.md, .claude/rules/);
+# ignore machine-local runtime artifacts.
+.claude/*
+!.claude/agents/
+!.claude/skills/
+!.claude/rules/
+!.claude/commands/
+!.claude/output-styles/
+!.claude/workflows/
+!.claude/settings.json

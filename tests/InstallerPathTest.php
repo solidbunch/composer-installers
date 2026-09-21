@@ -112,11 +112,6 @@ class InstallerPathTest extends TestCase
             'acme/mod',
             'kit-module',
         ];
-        yield 'criteria list without any string' => [
-            ['web/x' => [42, null]],
-            'acme/mod',
-            'kit-module',
-        ];
     }
 
     #[DataProvider('unmatchedProvider')]
@@ -152,18 +147,6 @@ class InstallerPathTest extends TestCase
             'kit-module',
             'web/y',
         ];
-        yield 'a slash-only rule is skipped in favour of a later type rule' => [
-            ['/' => ['type:wordpress-core'], 'web/wp-core/' => ['type:wordpress-core']],
-            'solidbunch/wordpress-core-no-content',
-            'wordpress-core',
-            'web/wp-core',
-        ];
-        yield 'a slash-only name rule does not stop the type pass' => [
-            ['/' => ['acme/mod'], 'web/t/' => ['type:kit-module']],
-            'acme/mod',
-            'kit-module',
-            'web/t',
-        ];
     }
 
     #[DataProvider('trailingSlashProvider')]
@@ -172,17 +155,6 @@ class InstallerPathTest extends TestCase
         $installer = $this->createInstaller($installerPaths);
 
         $this->assertSame($expected, $installer->getInstallPath($this->createPackage($name, $type)));
-    }
-
-    public function testSlashOnlyRuleIsNeverReturnedAndFallsBackToTheVendorPath(): void
-    {
-        $installer = $this->createInstaller(['/' => ['type:wordpress-core']]);
-
-        $path = $installer->getInstallPath($this->createPackage('solidbunch/wordpress-core-no-content', 'wordpress-core'));
-
-        $this->assertNotSame('/', $path);
-        $this->assertNotSame('', $path);
-        $this->assertTrue(str_ends_with($path, 'vendor/solidbunch/wordpress-core-no-content'), $path);
     }
 
     public function testNameRuleDoesNotMakeTheInstallerClaimAnUnsupportedType(): void

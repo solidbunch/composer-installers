@@ -15,11 +15,6 @@ use Composer\Package\PackageInterface;
  */
 class Installer extends LibraryInstaller
 {
-    /**
-     * Normalized "extra.installer-paths": install path template => list of string criteria.
-     *
-     * @var array<int|string, list<string>>
-     */
     protected array $paths = [];
 
     protected const TYPES = [
@@ -37,7 +32,9 @@ class Installer extends LibraryInstaller
         parent::__construct($io, $composer);
 
         $extra = $composer->getPackage()->getExtra();
-        $this->paths = $this->normalizePaths($extra['installer-paths'] ?? null);
+        if (is_array($extra['installer-paths'] ?? null)) {
+            $this->paths = $extra['installer-paths'];
+        }
     }
 
 
@@ -46,15 +43,19 @@ class Installer extends LibraryInstaller
      *
      * Rules naming the exact package name take precedence over "type:" rules; within each group the first rule
      * in the order of "extra.installer-paths" wins. Without a matching rule the default vendor path is returned.
-     * A custom path never ends with a slash; a rule whose path is empty once slashes are stripped is skipped.
+     * A custom path never ends with a slash.
      */
     public function getInstallPath(PackageInterface $package): string
     {
         $name = $package->getPrettyName(); // vendor/name
 
-        return $this->findPath($name, $name)
-            ?? $this->findPath('type:' . $package->getType(), $name)
-            ?? parent::getInstallPath($package);
+        $path = $this->findPath($name) ?? $this->findPath('type:' . $package->getType());
+        if ($path === null) {
+            return parent::getInstallPath($package);
+        }
+
+        // InstallerInterface::getInstallPath() requires a path that does not end with a slash
+        return rtrim($this->replaceVars((string) $path, $name), '/');
     }
 
 
@@ -88,38 +89,12 @@ class Installer extends LibraryInstaller
 
 
     /**
-     * Keeps the shape of "installer-paths" the rest of the class relies on; keys are never dropped or re-keyed.
-     *
-     * @return array<int|string, list<string>>
+     * Returns the path template of the first rule (in declaration order) that lists the given criteria.
      */
-    private function normalizePaths(mixed $installerPaths): array
+    private function findPath(string $criteria): int|string|null
     {
-        if (!is_array($installerPaths)) {
-            return [];
-        }
-
-        $paths = [];
-        foreach ($installerPaths as $path => $criteriaList) {
-            $paths[$path] = array_values(array_filter((array) $criteriaList, 'is_string'));
-        }
-
-        return $paths;
-    }
-
-
-    /**
-     * Returns the resolved path of the first rule (in declaration order) whose criteria contain the given string.
-     */
-    private function findPath(string $criteria, string $prettyName): ?string
-    {
-        foreach ($this->paths as $template => $criteriaList) {
-            if (!in_array($criteria, $criteriaList, true)) {
-                continue;
-            }
-
-            // InstallerInterface::getInstallPath() requires a path that does not end with a slash
-            $path = rtrim($this->replaceVars((string) $template, $prettyName), '/');
-            if ($path !== '') {
+        foreach ($this->paths as $path => $criteriaList) {
+            if (in_array($criteria, (array) $criteriaList, true)) {
                 return $path;
             }
         }

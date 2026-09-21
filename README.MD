@@ -35,7 +35,6 @@ In your project `composer.json`:
 * Rules naming an exact package (`"vendor/name"`) are checked before `type:` rules; inside each group the first rule in `installer-paths` order wins.
 * Package-name rules only apply to packages of the supported types `kit-module` and `wordpress-core`; a package of any other type is never handled by this installer.
 * A trailing slash in an `installer-paths` key is accepted and stripped from the resulting install path, because Composer's installer contract forbids a trailing slash.
-* An `installer-paths` key made only of slashes is skipped when the install path is resolved; the package falls back to the next matching rule or to `vendor/`.
 * The `vendor:` prefix known from `composer/installers` is not supported.
 * `type:*` is not a wildcard; a `type:` rule must name the exact type.
 
